@@ -208,6 +208,7 @@ function makeChunkStream(numParams)
             register = register + 1
             maxRegister = math.max(register, maxRegister)
             ret[i] = register
+            stream.createPool(register)
         end
         return unpack(ret)
     end
@@ -217,6 +218,7 @@ function makeChunkStream(numParams)
         local ret = { }
         for i = n, 1, -1 do
             ret[i] = register
+            stream.removeFromPool(register)
             register = register - 1
         end
         return unpack(ret)
@@ -239,6 +241,124 @@ function makeChunkStream(numParams)
         stream[k] = function(...)
             return stream.emit(op, ...)
         end
+    end
+
+    -- value pools are lists of registers known to share the same value
+    local valuePools = { }
+    function stream.findPool(reg)
+        for poolIndex,pool in ipairs(valuePools) do
+            for registerIndex,r in ipairs(pool) do
+                if r == reg then
+                    return pool, registerIndex, poolIndex
+                end
+            end
+        end
+    end
+
+    function stream.getPool(reg)
+        local pool, registerIndex, poolIndex = stream.findPool(reg)
+        if not pool then
+            pool, registerIndex, poolIndex = stream.createPool(reg)
+        end
+        return pool, registerIndex, poolIndex
+    end
+
+    function stream.removeFromPool(reg)
+        local pool, registerIndex, poolIndex = stream.findPool(reg)
+        if pool then
+            table.remove(pool, registerIndex)
+            if #pool == 0 then
+                table.remove(valuePools, poolIndex)
+            end
+        end
+    end
+
+    function stream.createPool(reg)
+        stream.removeFromPool(reg)
+        local pool = {reg}
+        table.insert(valuePools, pool)
+        return pool, 1, #valuePools
+    end
+
+    function stream.addToPool(add, to)
+        local toPool = stream.getPool(to)
+        if not toPool then
+            toPool = stream.createPool(to)
+        end
+        local addPool = stream.getPool(add)
+        if addPool and addPool ~= toPool then
+            stream.removeFromPool(add)
+        end
+        if addPool ~= toPool then
+            table.insert(toPool, add)
+        end
+        return toPool
+    end
+
+    function stream.clearValuePools()
+        valuePools = { }
+    end
+
+    -- overwrite ops
+    local assigners = {
+        "LOADK",
+        "LOADBOOL",
+        "GETUPVAL",
+        "GETGLOBAL",
+        "GETTABLE",
+        "NEWTABLE",
+        "ADD",
+        "SUB",
+        "MUL",
+        "DIV",
+        "MOD",
+        "POW",
+        "UNM",
+        "NOT",
+        "LEN",
+        "CONCAT"
+    }
+    for i,opName in ipairs(assigners) do
+        local old = stream[opName]
+        stream[opName] = function(rAssignTo, ...)
+            stream.createPool(rAssignTo)
+            return old(rAssignTo, ...)
+        end
+    end
+    
+    local oldMove = stream.MOVE
+    function stream.MOVE(a, b)
+        if a ~= b then
+            stream.removeFromPool(a)
+            stream.addToPool(a, b)
+        end
+        return oldMove(a, b)
+    end
+
+    local oldLoadnil = stream.LOADNIL
+    function stream.LOADNIL(a, b)
+        for r=a,b do
+            stream.createPool(r)
+        end
+        return oldLoadnil(a, b)
+    end
+
+    local oldCall = stream.CALL
+    function stream.CALL(a, b, c)
+        local numArgs = b == 0 and stream.getMaxRegister() - a or b - 1
+        local numReturns = c == 0 and stream.getMaxRegister() - a or c - 1
+        for r=a, a + math.max(numArgs, numReturns) do
+            stream.createPool(r)
+        end
+        return oldCall(a, b, c)
+    end
+
+    local oldClose = stream.CLOSE
+    function stream.CLOSE(a)
+        for i=a,stream.getMaxRegister() do
+            stream.createPool(i)
+        end
+        return oldClose(a)
     end
 
     function stream.compile(platform, name)
