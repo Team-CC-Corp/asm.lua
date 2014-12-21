@@ -1,4 +1,4 @@
-<project name="GRIN" default="main">
+<project name="ASM" default="main">
     <condition property="is_unix">
         <os family="unix" />
     </condition>
