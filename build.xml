@@ -1,0 +1,33 @@
+<project name="GRIN" default="main">
+    <condition property="is_unix">
+        <os family="unix" />
+    </condition>
+
+    <target name="clean">
+        <delete dir="build" />
+    </target>
+
+    <target name="make_archive">
+        <copy todir="build/asm">
+            <fileset dir=".">
+                <exclude name="build.xml" />
+                <exclude name="build/*" />
+            </fileset>
+        </copy>
+
+        <zip zip64Mode="never" destfile="build/asm.zip" basedir="build/asm" />
+    </target>
+
+    <target name="if_unix" if="is_unix" depends="make_archive">
+        <exec executable="base64">
+            <arg value="-i" />
+            <arg value="build/asm.zip" />
+            <arg value="-o" />
+            <arg value="build/asm.zip.base64" />
+        </exec>
+    </target>
+
+    <target name="main" depends="if_unix">
+        
+    </target>
+</project>
