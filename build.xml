@@ -12,6 +12,7 @@
             <fileset dir=".">
                 <exclude name="build.xml" />
                 <exclude name="build/*" />
+                <exclude name="installer.lua" />
             </fileset>
         </copy>
 
