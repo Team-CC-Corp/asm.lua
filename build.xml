@@ -8,13 +8,12 @@
     </target>
 
     <target name="make_archive">
-        <copy todir="build/asm">
-            <fileset dir=".">
-                <exclude name="build.xml" />
-                <exclude name="build/*" />
-                <exclude name="installer.lua" />
-            </fileset>
-        </copy>
+        <copy todir="build/asm" file="asm.lua" />
+        <copy todir="build/asm" file="bindump.lua" />
+        <copy todir="build/asm" file="json.lua" />
+        <copy todir="build/asm" file="load_asm.lua" />
+        <copy todir="build/asm" file="platform.json" />
+        <copy todir="build/asm" file="platform.lua" />
 
         <zip zip64Mode="never" destfile="build/asm.zip" basedir="build/asm" />
     </target>
