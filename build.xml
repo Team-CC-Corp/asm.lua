@@ -14,6 +14,7 @@
         <copy todir="build/asm" file="load_asm.lua" />
         <copy todir="build/asm" file="platform.json" />
         <copy todir="build/asm" file="platform.lua" />
+        <copy todir="build/asm" file="numberlua.lua" />
 
         <zip zip64Mode="never" destfile="build/asm.zip" basedir="build/asm" />
     </target>
