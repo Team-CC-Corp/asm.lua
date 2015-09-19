@@ -6,11 +6,11 @@ function makeDumpster(platform)
     local function dumpNum(n, bytes, forcedEndianness)
         if (platform.endianness == 0 or forcedEndianness == 0) and forcedEndianness ~= 1 then
             for i=bytes-1, 0, -1 do
-                dump.dumpByte(bit.band(bit.brshift(n, i * 8), 0xff))
+                dump.dumpByte(band(rshift(n, i * 8), 0xff))
             end
         elseif platform.endianness == 1 or forcedEndianness == 1 then
             for i=0, bytes - 1 do
-                dump.dumpByte(bit.band(bit.brshift(n, i * 8), 0xff))
+                dump.dumpByte(band(rshift(n, i * 8), 0xff))
             end
         else
             error("Unsupported endianness:" .. tostring(platform.endianness))

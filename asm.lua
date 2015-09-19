@@ -3,23 +3,23 @@ local InstructionTypes = { }
 local sbxBias = 131071 -- (2^18 - 1) >> 1
 
 function InstructionTypes.ABC(opcode, a, b, c)
-    a = bit.blshift(a, 6)
-    b = bit.blshift(b, 23)
-    c = bit.blshift(c, 14)
-    return bit.band(opcode + a + b + c, 2^32 - 1)
+    a = lshift(a, 6)
+    b = lshift(b, 23)
+    c = lshift(c, 14)
+    return band(opcode + a + b + c, 2^32 - 1)
 end
 
 function InstructionTypes.ABx(opcode, a, bx)
-    a = bit.blshift(a, 6)
-    bx = bit.blshift(bx, 14)
-    return bit.band(opcode + a + bx, 2^32 - 1)
+    a = lshift(a, 6)
+    bx = lshift(bx, 14)
+    return band(opcode + a + bx, 2^32 - 1)
 end
 
 function InstructionTypes.AsBx(opcode, a, sbx)
-    a = bit.blshift(a, 6)
+    a = lshift(a, 6)
     sbx = sbx + sbxBias
-    sbx = bit.blshift(sbx, 14)
-    return bit.band(opcode + a + sbx, 2^32 - 1)
+    sbx = lshift(sbx, 14)
+    return band(opcode + a + sbx, 2^32 - 1)
 end
 
 function InstructionTypes.AB(opcode, a, b)
@@ -136,7 +136,7 @@ function makeChunkStream(numParams)
             rk = stream.alloc()
             stream.LOADK(rk, constant)
         else
-            rk = bit.bor(256, constant)
+            rk = bor(256, constant)
         end
         return rk
     end
@@ -152,7 +152,7 @@ function makeChunkStream(numParams)
             rk = stream.alloc()
             stream.LOADK(rk, constant)
         else
-            rk = bit.bor(256, constant)
+            rk = bor(256, constant)
         end
         return rk, stream.allocRK(...)
     end
