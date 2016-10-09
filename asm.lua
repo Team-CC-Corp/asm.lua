@@ -1,3 +1,5 @@
+local band, lshift = band, lshift
+
 local InstructionTypes = { }
 
 local sbxBias = 131071 -- (2^18 - 1) >> 1
@@ -325,7 +327,7 @@ function makeChunkStream(numParams)
             return old(rAssignTo, ...)
         end
     end
-    
+
     local oldMove = stream.MOVE
     function stream.MOVE(a, b)
         if a ~= b then
