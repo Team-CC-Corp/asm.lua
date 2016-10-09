@@ -1,6 +1,6 @@
 ------------------------------------------------------------------ utils
 local controls = {["\n"]="\\n", ["\r"]="\\r", ["\t"]="\\t", ["\b"]="\\b", ["\f"]="\\f", ["\""]="\\\"", ["\\"]="\\\\"}
- 
+
 local function isArray(t)
         local max = 0
         for k,v in pairs(t) do
@@ -12,7 +12,7 @@ local function isArray(t)
         end
         return max == #t
 end
- 
+
 local whites = {['\n']=true; ['r']=true; ['\t']=true; [' ']=true; [',']=true; [':']=true}
 function removeWhite(str)
         while whites[str:sub(1, 1)] do
@@ -20,17 +20,17 @@ function removeWhite(str)
         end
         return str
 end
- 
+
 ------------------------------------------------------------------ encoding
- 
+
 local function encodeCommon(val, pretty, tabLevel, tTracking)
         local str = ""
- 
+
         -- Tabbing util
         local function tab(s)
                 str = str .. ("\t"):rep(tabLevel) .. s
         end
- 
+
         local function arrEncoding(val, bracket, closeBracket, iterator, loopFunc)
                 str = str .. bracket
                 if pretty then
@@ -53,7 +53,7 @@ local function encodeCommon(val, pretty, tabLevel, tTracking)
                 end
                 tab(closeBracket)
         end
- 
+
         -- Table encoding
         if type(val) == "table" then
                 assert(not tTracking[val], "Cannot encode a table holding itself recursively")
@@ -80,17 +80,17 @@ local function encodeCommon(val, pretty, tabLevel, tTracking)
         end
         return str
 end
- 
+
 function encode(val)
         return encodeCommon(val, false, 0, {})
 end
- 
+
 function encodePretty(val)
         return encodeCommon(val, true, 0, {})
 end
- 
+
 ------------------------------------------------------------------ decoding
- 
+
 function parseBoolean(str)
         if str:sub(1, 4) == "true" then
                 return true, removeWhite(str:sub(5))
@@ -98,11 +98,11 @@ function parseBoolean(str)
                 return false, removeWhite(str:sub(6))
         end
 end
- 
+
 function parseNull(str)
         return nil, removeWhite(str:sub(5))
 end
- 
+
 local numChars = {['e']=true; ['E']=true; ['+']=true; ['-']=true; ['.']=true}
 function parseNumber(str)
         local i = 1
@@ -113,21 +113,21 @@ function parseNumber(str)
         str = removeWhite(str:sub(i))
         return val, str
 end
- 
+
 function parseString(str)
         local i,j = str:find('[^\\]"')
         local s = str:sub(2, j - 1)
- 
+
         for k,v in pairs(controls) do
                 s = s:gsub(v, k)
         end
         str = removeWhite(str:sub(j + 1))
         return s, str
 end
- 
+
 function parseArray(str)
         str = removeWhite(str:sub(2))
-       
+
         local val = {}
         local i = 1
         while str:sub(1, 1) ~= "]" do
@@ -140,10 +140,10 @@ function parseArray(str)
         str = removeWhite(str:sub(2))
         return val, str
 end
- 
+
 function parseObject(str)
         str = removeWhite(str:sub(2))
-       
+
         local val = {}
         while str:sub(1, 1) ~= "}" do
                 local k, v = nil, nil
@@ -154,7 +154,7 @@ function parseObject(str)
         str = removeWhite(str:sub(2))
         return val, str
 end
- 
+
 function parseMember(str)
         local k = nil
         k, str = parseValue(str)
@@ -162,7 +162,7 @@ function parseMember(str)
         val, str = parseValue(str)
         return k, val, str
 end
- 
+
 function parseValue(str)
         local fchar = str:sub(1, 1)
         if fchar == "{" then
@@ -180,14 +180,16 @@ function parseValue(str)
         end
         return nil
 end
- 
+
 function decode(str)
         str = removeWhite(str)
         t = parseValue(str)
         return t
 end
- 
+
 function decodeFromFile(path)
         local file = assert(fs.open(path, "r"))
-        return decode(file.readAll())
+        local contents = file.readAll()
+        file.close()
+        return decode(contents)
 end
