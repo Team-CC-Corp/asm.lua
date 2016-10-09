@@ -17,11 +17,11 @@ function asmEnv.assert(condition, errMsg, level)
 end
 
 local files = {
+    "numberlua.lua", -- Load before everything else
     "asm.lua",
     "bindump.lua",
     "platform.lua",
     "json.lua",
-    "numberlua.lua"
 }
 
 for i,v in ipairs(files) do

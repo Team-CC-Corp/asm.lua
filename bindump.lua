@@ -1,3 +1,5 @@
+local band, rshift = band, rshift
+
 function makeDumpster(platform)
     local dump = { }
 
